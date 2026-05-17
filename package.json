@@ -1,0 +1,17 @@
+{
+  "name": "puente",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "pnpm --filter @puente/shared build && pnpm --filter web build && pnpm --filter oracle build",
+    "dev": "pnpm --filter web dev",
+    "test": "pnpm --filter contracts test",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r --parallel run clean"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  }
+}
