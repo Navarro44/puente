@@ -200,9 +200,29 @@ is exercised.
 ### Core tables
 
 `organizations`, `users`, `suppliers`, `transactions`, `milestones`,
-`bills_of_lading`, `documents`, `messages`, `disputes`, `audit_events`. The database
-mirrors on-chain state for fast reads; the indexer keeps it in sync. See the spec §5.4
-for column-level detail.
+`bills_of_lading`, `documents`, `messages`, `disputes`, `audit_events`,
+`ledger_entries`. The database mirrors on-chain state for fast reads; the indexer keeps
+it in sync. See the spec §5.4 for column-level detail.
+
+### Double-entry ledger
+
+`ledger_entries` is a **double-entry accounting ledger**, distinct from `audit_events`.
+`audit_events` is an event log — it records *what happened*. `ledger_entries` records
+*whether the books balance*. Every fund-affecting state change writes a set of balanced
+entries (each row: `transaction_id`, `account`, `debit`, `credit`, `currency`,
+`timestamp`, plus a reference to the originating on-chain event); for any group, total
+debits must equal total credits.
+
+This is the foundation for reconciliation, for the CFO persona's audit and reporting,
+and for proving correctness to regulators and auditors. The chain remains the source of
+truth for funds (Section 3); the ledger is the accounting *interpretation* of on-chain
+movements, written by the indexer alongside the mirror tables.
+
+**Phase 1 scope:** build the table and write balanced entries at each escrow state
+transition, even though the MVP UI does not yet read from it heavily. The cost is one
+table and a few inserts; the benefit is a ledger-shaped data model from the first
+migration. Retrofitting double-entry onto a system not built for it is expensive — so it
+goes in now, as structure, not as a deferred feature.
 
 ---
 
@@ -246,6 +266,25 @@ All of these are interfaces with a mock (Phase 1) and a real implementation (Pha
 - **Sanctions screening:** every party (buyer org, supplier, Singapore receiving
   entity) screened against OFAC/UN/EU/UK lists **before any escrow is funded**. Mock
   for Phase 1. Real: ComplyAdvantage / Chainalysis / equivalent.
+- **Transaction monitoring (KYT):** ongoing surveillance of the on-chain activity
+  itself — wallet risk scoring, exposure to sanctioned or high-risk addresses,
+  suspicious-pattern detection — as opposed to the one-time party checks above. Mock for
+  Phase 1: returns a clean risk assessment, with a way to force a flagged result for
+  testing. Real: Chainalysis / TRM Labs / Elliptic.
+
+### KYB vs. sanctions vs. KYT — three distinct checks
+
+Do not conflate these; they answer different questions and run at different times.
+
+- **KYB** — is the supplier a real, legitimate business? A one-time onboarding gate,
+  anchored as a credential in `SupplierRegistry`.
+- **Sanctions screening** — is any party on a watchlist? Run on every party immediately
+  before funding; a match blocks the escrow.
+- **KYT (transaction monitoring)** — is the money movement itself suspicious? Continuous
+  monitoring of on-chain activity, not a one-time gate.
+
+In Phase 1 all three are mocks behind interfaces. KYT is built as an interface now so
+the seam is correct; the real implementation is Phase 2+.
 
 ---
 
