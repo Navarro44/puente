@@ -3,12 +3,35 @@
   "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "mocks": [
+        "./dist/mocks/index.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./mocks": {
+      "types": "./dist/mocks/index.d.ts",
+      "require": "./dist/mocks/index.js",
+      "default": "./dist/mocks/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "viem": "^2.50.4"
   }
 }
