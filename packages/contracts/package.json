@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "hardhat compile",
+    "build": "hardhat compile && hardhat export-abis",
+    "export-abis": "hardhat export-abis",
     "hardhat": "hardhat",
     "test": "hardhat test",
     "coverage": "hardhat coverage",
@@ -12,6 +13,7 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/hardhat-upgrades": "^3.9.1",
     "@types/node": "^20.0.0",
     "dotenv": "^16.4.0",
     "hardhat": "^2.22.0",

@@ -1,7 +1,23 @@
 import * as dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
-import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "@openzeppelin/hardhat-upgrades";
+
+task("export-abis", "Copy compiled ABIs to abis/ for off-chain consumers").setAction(
+  async (_, hre) => {
+    const contracts = ["Escrow", "EscrowFactory", "SupplierRegistry"];
+    const abisDir = path.join(__dirname, "abis");
+    fs.mkdirSync(abisDir, { recursive: true });
+    for (const name of contracts) {
+      const artifact = await hre.artifacts.readArtifact(name);
+      const dest = path.join(abisDir, `${name}.json`);
+      fs.writeFileSync(dest, JSON.stringify(artifact.abi, null, 2));
+      console.log(`  exported ${name}.json`);
+    }
+  }
+);
 
 // Load root .env so RPC URLs and keys are available when running from the
 // packages/contracts directory (two levels up from repo root).
