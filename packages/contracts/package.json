@@ -9,13 +9,15 @@
     "test": "hardhat test",
     "coverage": "hardhat coverage",
     "clean": "hardhat clean",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy:baseSepolia": "hardhat run scripts/deploy.ts --network baseSepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/hardhat-upgrades": "^3.9.1",
     "@types/node": "^20.0.0",
     "dotenv": "^16.4.0",
+    "ethers": "^6.16.0",
     "hardhat": "^2.22.0",
     "solidity-coverage": "^0.8.14",
     "ts-node": "^10.9.2",

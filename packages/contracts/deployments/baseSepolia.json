@@ -1,0 +1,26 @@
+{
+  "network": "baseSepolia",
+  "chainId": 84532,
+  "deployer": "0xA4AF7A7bEC7a4e246eCD6f4516dB0F1385B3fE4D",
+  "deploymentBlock": 41822759,
+  "deploymentTimestamp": "2026-05-22T01:36:46.807Z",
+  "gitCommit": "11b978e19bc5c5e1c080189641eb077b44232d20",
+  "usdcAddress": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  "protocolConfig": {
+    "feeBps": 50,
+    "oracle": "0xc0D02d47Bf9Db66c3fD19e724347e39a1acdFF1C",
+    "arbitrator": "0x7DEB3d6670d64E3b9ee5496a4C7D888488b281Fd",
+    "feeRecipient": "0xA4AF7A7bEC7a4e246eCD6f4516dB0F1385B3fE4D"
+  },
+  "EscrowFactory": {
+    "proxy": "0xd2602C6703Dc365f0245DE6Bef580ee1DEBB48Ad",
+    "implementation": "0xE30d519b9cE86C8BC2274067a588A2BcE59CE177"
+  },
+  "Escrow": {
+    "address": "0x158244ac75157CF10282D8448870DDcB2E8c3697"
+  },
+  "SupplierRegistry": {
+    "proxy": "0x3dFB2ef5611444cbA91abc1a9B11820375d18e7e",
+    "implementation": "0x35a6327269AD8a1ba1C26C2AEc77C603970715dE"
+  }
+}

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import type { Escrow, MockERC20 } from "../typechain-types";
+import type { Escrow, MockERC20, MaliciousToken } from "../typechain-types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -674,7 +674,7 @@ describe("Escrow", function () {
         await loadFixture(deployFixture);
 
       const MaliciousTokenF = await ethers.getContractFactory("MaliciousToken");
-      const evil = await MaliciousTokenF.deploy();
+      const evil = (await MaliciousTokenF.deploy()) as unknown as MaliciousToken;
 
       const EscrowF = await ethers.getContractFactory("Escrow");
       const escrow2 = (await EscrowF.deploy(owner.address)) as unknown as Escrow;
