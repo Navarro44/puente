@@ -1,14 +1,23 @@
-// Oracle service entrypoint.
-// Responsibilities (implemented in subsequent tasks):
-//   1. Chain indexer: listen to EscrowFactory/Escrow events → sync Supabase read-mirror
-//   2. Oracle worker: watch Shipped-state escrows → verify bill of lading → submit release tx
+/**
+ * Puente oracle service — combined entrypoint.
+ *
+ * Starts both the chain indexer and the oracle worker in the same process.
+ * Each can also be started independently:
+ *
+ *   node dist/indexer.js   — indexer only
+ *   node dist/oracle.js    — oracle worker only
+ *   node dist/index.js     — both (this file)
+ */
+
+import { startIndexer } from './indexer';
+import { startOracle } from './oracle';
 
 async function main(): Promise<void> {
-  console.log("Puente oracle service starting...");
-  // TODO: initialize chain watcher, B/L verifier adapter, and submission queue
+  console.log('[puente-oracle] Starting Puente oracle service (indexer + oracle worker)…');
+  await Promise.all([startIndexer(), startOracle()]);
 }
 
 main().catch((err: unknown) => {
-  console.error(err);
+  console.error('[puente-oracle] Fatal startup error:', err);
   process.exit(1);
 });

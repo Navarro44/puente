@@ -5,12 +5,20 @@
   "scripts": {
     "build": "tsc --build",
     "start": "node dist/index.js",
+    "start:indexer": "node dist/indexer.js",
+    "start:oracle": "node dist/oracle.js",
     "dev": "ts-node src/index.ts",
+    "dev:indexer": "ts-node src/indexer.ts",
+    "dev:oracle": "ts-node src/oracle.ts",
     "clean": "rm -rf dist *.tsbuildinfo",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "arm:bl": "ts-node scripts/arm-bl.ts"
   },
   "dependencies": {
-    "@puente/shared": "workspace:*"
+    "@puente/shared": "workspace:*",
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^16.4.0",
+    "viem": "^2.50.4"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
