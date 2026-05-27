@@ -325,3 +325,21 @@ asks. When in doubt, build the mock and the interface, not the real integration.
   this file as the source of truth for engineering rules. If they conflict, flag it.
 - Prefer clarity over cleverness. Explain non-obvious decisions in code comments and in
   the relevant package README.
+
+## Standing facts (added during Phase 1 build)
+
+- apps/oracle is configured as CommonJS (no "type": "module" in
+  package.json, tsconfig "module": "commonjs"). Do NOT use import.meta,
+  fileURLToPath, or --skipProject. __dirname is available as a global.
+- All scripts load .env from the repo root, not from their own package
+  directory. See scripts/deploy.ts, apps/oracle/src/indexer.ts for the
+  established pattern.
+- The mock carrier adapter is backed by the Supabase
+  mock_carrier_verifications table, NOT in-memory state — so the
+  arming script (apps/oracle/scripts/arm-bl.ts) and the oracle process
+  can share verification state. The real adapter follows the same
+  pattern.
+- Contract addresses are read from
+  packages/contracts/deployments/baseSepolia.json. Never read them
+  from .env directly. A redeploy rewrites this file; everything reads
+  through it.

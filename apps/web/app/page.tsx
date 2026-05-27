@@ -1,10 +1,28 @@
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold tracking-tight">Puente</h1>
-      <p className="mt-4 text-lg text-gray-600">
-        Non-custodial trade finance on Base
-      </p>
-    </main>
-  );
+import { redirect } from 'next/navigation';
+import { createSupabaseServerClient } from '../lib/supabase/server';
+import { getServiceClient } from '../lib/supabase/service';
+
+export default async function Home() {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  // Check if profile exists
+  const db = getServiceClient();
+  const { data: profile } = await db
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!profile) redirect('/onboard');
+
+  if (profile.role === 'cfo' || profile.role === 'admin') {
+    redirect('/dashboard');
+  }
+
+  redirect('/transactions');
 }
