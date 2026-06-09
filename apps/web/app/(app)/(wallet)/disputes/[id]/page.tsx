@@ -1,10 +1,10 @@
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createSupabaseServerClient } from '../../../../lib/supabase/server';
-import { getServiceClient } from '../../../../lib/supabase/service';
-import { StateBadge } from '../../../../components/state-badge';
-import { formatUsdc, formatDate, truncateAddress } from '../../../../lib/format';
-import { resolveDispute } from '../../../../lib/actions/dispute';
+import { createSupabaseServerClient } from '../../../../../lib/supabase/server';
+import { getServiceClient } from '../../../../../lib/supabase/service';
+import { StateBadge } from '../../../../../components/state-badge';
+import { formatUsdc, formatDate, truncateAddress } from '../../../../../lib/format';
+import { resolveDispute } from '../../../../../lib/actions/dispute';
 
 export default async function DisputePage({ params }: { params: { id: string } }) {
   const supabase = createSupabaseServerClient();

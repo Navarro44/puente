@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { createSupabaseServerClient } from '../../../../lib/supabase/server';
-import { getServiceClient } from '../../../../lib/supabase/service';
-import { createTransaction } from '../../../../lib/actions/transaction';
-import { deployment } from '../../../../lib/deployments';
+import { createSupabaseServerClient } from '../../../../../lib/supabase/server';
+import { getServiceClient } from '../../../../../lib/supabase/service';
+import { createTransaction } from '../../../../../lib/actions/transaction';
+import { deployment } from '../../../../../lib/deployments';
 
 const FX_RATE = 0.053; // 1 MXN = 0.053 USDC (mock on-ramp rate)
 const FEE_BPS = deployment.protocolConfig.feeBps;

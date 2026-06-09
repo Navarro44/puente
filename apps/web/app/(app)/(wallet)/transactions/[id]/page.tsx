@@ -1,12 +1,12 @@
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createSupabaseServerClient } from '../../../../lib/supabase/server';
-import { getServiceClient } from '../../../../lib/supabase/service';
-import { StateBadge } from '../../../../components/state-badge';
-import { MilestoneTimeline } from '../../../../components/milestone-timeline';
-import { formatUsdc, formatDate, truncateAddress } from '../../../../lib/format';
-import { fundTransaction, confirmShipment, confirmReceipt } from '../../../../lib/actions/transaction';
-import { raiseDispute } from '../../../../lib/actions/dispute';
+import { createSupabaseServerClient } from '../../../../../lib/supabase/server';
+import { getServiceClient } from '../../../../../lib/supabase/service';
+import { StateBadge } from '../../../../../components/state-badge';
+import { MilestoneTimeline } from '../../../../../components/milestone-timeline';
+import { formatUsdc, formatDate, truncateAddress } from '../../../../../lib/format';
+import { fundTransaction, confirmShipment, confirmReceipt } from '../../../../../lib/actions/transaction';
+import { raiseDispute } from '../../../../../lib/actions/dispute';
 
 export default async function TransactionDetailPage({
   params,
@@ -395,7 +395,7 @@ export default async function TransactionDetailPage({
 // Bound server action wrappers for dispute resolution
 async function resolveDisputeWithId(txId: string, disputeId: string, formData: FormData) {
   'use server';
-  const { resolveDispute } = await import('../../../../lib/actions/dispute');
+  const { resolveDispute } = await import('../../../../../lib/actions/dispute');
   formData.set('transaction_id', txId);
   formData.set('dispute_id', disputeId);
   return resolveDispute(formData);
@@ -403,7 +403,7 @@ async function resolveDisputeWithId(txId: string, disputeId: string, formData: F
 
 async function raiseDisputeAction(formData: FormData) {
   'use server';
-  const { raiseDispute } = await import('../../../../lib/actions/dispute');
+  const { raiseDispute } = await import('../../../../../lib/actions/dispute');
   return raiseDispute(formData);
 }
 
@@ -428,7 +428,7 @@ function Detail({ label, value }: { label: string; value: React.ReactNode }) {
 function MessageForm({ transactionId, userId }: { transactionId: string; userId: string }) {
   async function sendMessage(formData: FormData) {
     'use server';
-    const db = (await import('../../../../lib/supabase/service')).getServiceClient();
+    const db = (await import('../../../../../lib/supabase/service')).getServiceClient();
     const body = formData.get('body') as string;
     if (!body?.trim()) return;
     await db.from('messages').insert({
