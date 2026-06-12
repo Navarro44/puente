@@ -225,25 +225,23 @@ export async function fundTransaction(formData: FormData) {
     redirect(`/transactions/${txId}?error=${encodeURIComponent(msg)}`);
   }
 
-  // Read escrow on-chain to get exact total to approve
-  const onchainEscrow = await publicClient.readContract({
-    address: ESCROW_ADDR,
-    abi: EscrowAbi,
-    functionName: 'getEscrow',
-    args: [BigInt(tx.escrow_id)],
-  });
-
-  const total = onchainEscrow.amount + onchainEscrow.fee;
+  // total = amount + fee, matching exactly what fund() will transferFrom.
+  // Use DB values (populated from the EscrowCreated event at creation) to avoid
+  // an extra RPC round-trip and any potential struct-decoding edge case.
+  const total = BigInt(tx.amount) + BigInt(tx.fee);
   const buyerWallet = getBuyerWalletClient();
 
-  // Approve USDC to Escrow contract
+  // Approve the Escrow contract to pull total USDC from the buyer wallet.
   const approveTx = await buyerWallet.writeContract({
     address: USDC_ADDR,
     abi: USDC_APPROVE_ABI,
     functionName: 'approve',
     args: [ESCROW_ADDR, total],
   });
-  await publicClient.waitForTransactionReceipt({ hash: approveTx });
+  const approveReceipt = await publicClient.waitForTransactionReceipt({ hash: approveTx });
+  if (approveReceipt.status !== 'success') {
+    redirect(`/transactions/${txId}?error=${encodeURIComponent('USDC approve transaction reverted')}`);
+  }
 
   // Fund escrow
   const fundTx = await buyerWallet.writeContract({
@@ -272,7 +270,7 @@ export async function fundTransaction(formData: FormData) {
     actor_user_id: user.id,
     onchain_tx_hash: fundTx,
     block_number: fundReceipt.blockNumber.toString(),
-    data: { amount: onchainEscrow.amount.toString(), fee: onchainEscrow.fee.toString() },
+    data: { amount: tx.amount, fee: tx.fee },
   });
 
   // Write sanctions-cleared audit event
