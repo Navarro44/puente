@@ -49,29 +49,13 @@ const config: HardhatUserConfig = {
       chainId: 8453,
     },
   },
+  // hardhat-verify v2: single API key works for all Etherscan-compatible chains
+  // (Etherscan v2 API). Base and Base Sepolia are built-in — no customChains needed.
   etherscan: {
-    apiKey: {
-      baseSepolia: process.env.BASESCAN_API_KEY ?? "",
-      base: process.env.BASESCAN_API_KEY ?? "",
-    },
-    customChains: [
-      {
-        network: "baseSepolia",
-        chainId: 84532,
-        urls: {
-          apiURL: "https://api-sepolia.basescan.org/api",
-          browserURL: "https://sepolia.basescan.org",
-        },
-      },
-      {
-        network: "base",
-        chainId: 8453,
-        urls: {
-          apiURL: "https://api.basescan.org/api",
-          browserURL: "https://basescan.org",
-        },
-      },
-    ],
+    apiKey: process.env.BASESCAN_API_KEY ?? "",
+  },
+  sourcify: {
+    enabled: false,
   },
 };
 

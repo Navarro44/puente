@@ -11,7 +11,9 @@
     "clean": "hardhat clean",
     "typecheck": "tsc --noEmit",
     "deploy:baseSepolia": "hardhat run scripts/deploy.ts --network baseSepolia",
-    "seed:test-tx": "hardhat run scripts/seed-test-transaction.ts --network baseSepolia"
+    "seed:test-tx": "hardhat run scripts/seed-test-transaction.ts --network baseSepolia",
+    "verify:baseSepolia": "hardhat verify --network baseSepolia",
+    "verify:all:baseSepolia": "hardhat run scripts/verify-all-baseSepolia.ts --network baseSepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
