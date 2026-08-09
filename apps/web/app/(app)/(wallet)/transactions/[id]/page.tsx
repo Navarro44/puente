@@ -7,6 +7,9 @@ import { MilestoneTimeline } from '../../../../../components/milestone-timeline'
 import { formatUsdc, formatDate, truncateAddress } from '../../../../../lib/format';
 import { fundTransaction, confirmShipment, confirmReceipt } from '../../../../../lib/actions/transaction';
 import { raiseDispute } from '../../../../../lib/actions/dispute';
+import { publicClient } from '../../../../../lib/chain';
+import { deployment } from '../../../../../lib/deployments';
+import { EscrowAbi } from '@puente/shared';
 
 export default async function TransactionDetailPage({
   params,
@@ -50,6 +53,29 @@ export default async function TransactionDetailPage({
   const bol = bols?.[0];
   const error = searchParams.error;
 
+  // Unregistered-wallet detection: if the indexer could not attribute the buyer
+  // org or supplier (wallet not in org_wallets), resolve the on-chain addresses
+  // so we can offer a one-click "Register this wallet" action. The chain is the
+  // source of truth for who the buyer/supplier are.
+  let unregisteredBuyer: string | null = null;
+  let unregisteredSupplier: string | null = null;
+  if (!tx.buyer_organization_id || !tx.supplier_id) {
+    try {
+      const record = await publicClient.readContract({
+        address: deployment.Escrow.address as `0x${string}`,
+        abi: EscrowAbi,
+        functionName: 'getEscrow',
+        args: [BigInt(tx.escrow_id)],
+      });
+      if (!tx.buyer_organization_id) unregisteredBuyer = record.buyer.toLowerCase();
+      if (!tx.supplier_id) unregisteredSupplier = record.supplier.toLowerCase();
+    } catch {
+      // Chain read failed — fall back to a generic banner without pre-fill.
+      if (!tx.buyer_organization_id) unregisteredBuyer = '';
+      if (!tx.supplier_id) unregisteredSupplier = '';
+    }
+  }
+
   // Supplier credential warning
   const kybStatus = supplier?.kyb_status ?? 'pending';
   const credentialExpiry = supplier?.onchain_credential_expiry;
@@ -80,6 +106,26 @@ export default async function TransactionDetailPage({
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
           {decodeURIComponent(error)}
+        </div>
+      )}
+
+      {(unregisteredBuyer !== null || unregisteredSupplier !== null) && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-800 space-y-2">
+          <p className="font-medium">⚠ Unregistered wallet</p>
+          {unregisteredBuyer !== null && (
+            <WalletRegisterRow
+              kind="Buyer"
+              address={unregisteredBuyer}
+              role="buyer"
+            />
+          )}
+          {unregisteredSupplier !== null && (
+            <WalletRegisterRow
+              kind="Supplier"
+              address={unregisteredSupplier}
+              role="supplier"
+            />
+          )}
         </div>
       )}
 
@@ -405,6 +451,39 @@ async function raiseDisputeAction(formData: FormData) {
   'use server';
   const { raiseDispute } = await import('../../../../../lib/actions/dispute');
   return raiseDispute(formData);
+}
+
+function WalletRegisterRow({
+  kind,
+  address,
+  role,
+}: {
+  kind: string;
+  address: string;
+  role: 'buyer' | 'supplier';
+}) {
+  const href = address
+    ? `/settings/wallets?wallet=${address}&role=${role}`
+    : `/settings/wallets?role=${role}`;
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span>
+        {kind} wallet{' '}
+        {address ? (
+          <span className="font-mono text-xs">{truncateAddress(address)}</span>
+        ) : (
+          <span className="text-amber-700">(address unavailable)</span>
+        )}{' '}
+        is not mapped to an organisation.
+      </span>
+      <Link
+        href={href}
+        className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium py-1 px-3 rounded transition-colors"
+      >
+        Register this wallet →
+      </Link>
+    </div>
+  );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

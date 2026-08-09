@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard', roles: ['cfo', 'admin'] },
   { href: '/transactions', label: 'Transactions', roles: ['cfo', 'procurement', 'admin'] },
   { href: '/suppliers', label: 'Suppliers', roles: ['cfo', 'procurement', 'admin'] },
+  { href: '/settings/wallets', label: 'Wallets', roles: ['cfo', 'procurement', 'admin'] },
   { href: '/transactions', label: 'My Shipments', roles: ['supplier_contact'] },
 ];
 

@@ -83,5 +83,33 @@ export async function createProfile(formData: FormData) {
     redirect(`/onboard?error=${encodeURIComponent(userErr.message)}`);
   }
 
+  // Optional wallet-registration step: map an on-chain wallet to this org in
+  // org_wallets so the indexer can attribute future escrow events to it.
+  const regWallet = ((formData.get('reg_wallet_address') as string) || '').trim().toLowerCase();
+  if (regWallet) {
+    const regRole = (formData.get('reg_wallet_role') as string) || orgRole;
+    const regLabel = ((formData.get('reg_wallet_label') as string) || '').trim() || null;
+
+    if (!/^0x[0-9a-f]{40}$/.test(regWallet)) {
+      redirect(`/onboard?error=${encodeURIComponent('Invalid wallet address — must be a 0x-prefixed 20-byte hex address')}`);
+    }
+    if (regRole !== 'buyer' && regRole !== 'supplier') {
+      redirect(`/onboard?error=${encodeURIComponent('Wallet role must be buyer or supplier')}`);
+    }
+
+    const { error: walletErr } = await db.from('org_wallets').insert({
+      organization_id: org.id,
+      wallet_address: regWallet,
+      role: regRole,
+      label: regLabel,
+    });
+
+    if (walletErr) {
+      // The org + user are valid; surface the wallet error without tearing them
+      // down so the user can retry registration from settings.
+      redirect(`/onboard?error=${encodeURIComponent(`Organisation created, but wallet registration failed: ${walletErr.message}`)}`);
+    }
+  }
+
   redirect('/');
 }

@@ -20,7 +20,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!profile) redirect('/onboard');
 
-  const orgName = (profile.organization as { name: string } | null)?.name ?? '';
+  // Supabase types a to-one embed as an array; normalise defensively.
+  const orgRel = profile.organization as unknown as { name: string } | { name: string }[] | null;
+  const orgName = (Array.isArray(orgRel) ? orgRel[0]?.name : orgRel?.name) ?? '';
 
   return (
     <div className="flex h-screen overflow-hidden">

@@ -12,7 +12,8 @@
     "dev:oracle": "ts-node src/oracle.ts",
     "clean": "rm -rf dist *.tsbuildinfo",
     "typecheck": "tsc --noEmit",
-    "arm:bl": "ts-node scripts/arm-bl.ts"
+    "arm:bl": "ts-node scripts/arm-bl.ts",
+    "backfill:org-attribution": "ts-node scripts/backfill-org-attribution.ts"
   },
   "dependencies": {
     "@puente/shared": "workspace:*",

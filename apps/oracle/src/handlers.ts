@@ -85,61 +85,62 @@ async function getEscrow(escrowId: bigint): Promise<OnchainEscrowRecord> {
 
 // ── DB helpers ────────────────────────────────────────────────────────────────
 
-async function findOrCreateOrg(
+/**
+ * Resolve a buyer wallet to its organization via the org_wallets registry.
+ * Returns null when the wallet is not registered — the indexer NEVER invents a
+ * placeholder organization. Attribution is left null until a wallet is
+ * registered through onboarding or org settings.
+ */
+export async function lookupBuyerOrg(
   supabase: SupabaseClient,
   walletAddress: string,
-  role: 'buyer' | 'supplier',
-): Promise<string> {
+): Promise<string | null> {
   const addr = walletAddress.toLowerCase();
   const { data } = await supabase
-    .from('organizations')
-    .select('id')
-    .ilike('wallet_address', addr)
-    .limit(1)
+    .from('org_wallets')
+    .select('organization_id')
+    .eq('wallet_address', addr)
+    .eq('role', 'buyer')
     .maybeSingle();
-
-  if (data?.id) return data.id as string;
-
-  // Create a placeholder org for on-chain addresses not yet onboarded via web app.
-  const { data: created, error } = await supabase
-    .from('organizations')
-    .insert({ name: `Unregistered ${role} ${addr.slice(0, 10)}`, role, country: 'XX', wallet_address: addr })
-    .select('id')
-    .single();
-  if (error || !created) throw new Error(`[handlers] Create placeholder org: ${error?.message}`);
-  return created.id as string;
+  return (data?.organization_id as string) ?? null;
 }
 
-async function findOrCreateSupplier(
+/**
+ * Resolve a supplier wallet to a suppliers row.
+ *
+ * Two gates:
+ *   1. The wallet must be registered as a supplier in org_wallets.
+ *   2. A suppliers row must exist for that wallet WITHIN the buyer's org
+ *      (suppliers are per-buyer records).
+ *
+ * Returns null if either gate fails (including when the buyer org is unknown).
+ */
+export async function lookupSupplier(
   supabase: SupabaseClient,
   walletAddress: string,
-  buyerOrgId: string,
-): Promise<string> {
+  buyerOrgId: string | null,
+): Promise<string | null> {
+  if (!buyerOrgId) return null;
   const addr = walletAddress.toLowerCase();
-  const { data } = await supabase
+
+  // Gate 1: wallet registered as a supplier at all?
+  const { data: registered } = await supabase
+    .from('org_wallets')
+    .select('id')
+    .eq('wallet_address', addr)
+    .eq('role', 'supplier')
+    .maybeSingle();
+  if (!registered) return null;
+
+  // Gate 2: a suppliers row for this wallet within the buyer's org.
+  const { data: supplier } = await supabase
     .from('suppliers')
     .select('id')
     .ilike('wallet_address', addr)
     .eq('buyer_organization_id', buyerOrgId)
     .limit(1)
     .maybeSingle();
-
-  if (data?.id) return data.id as string;
-
-  const { data: created, error } = await supabase
-    .from('suppliers')
-    .insert({
-      buyer_organization_id: buyerOrgId,
-      legal_name:            `Unregistered Supplier ${addr.slice(0, 10)}`,
-      registration_number:   addr,
-      registration_country:  'XX',
-      wallet_address:        addr,
-      kyb_status:            'pending',
-    })
-    .select('id')
-    .single();
-  if (error || !created) throw new Error(`[handlers] Create placeholder supplier: ${error?.message}`);
-  return created.id as string;
+  return (supplier?.id as string) ?? null;
 }
 
 async function findTransactionId(
@@ -193,8 +194,23 @@ export async function handleEscrowCreated(
   const escrowIdStr = event.escrowId.toString();
   const occurredAt  = tsToISO(meta.blockTimestamp);
 
-  const buyerOrgId = await findOrCreateOrg(supabase, event.buyer, 'buyer');
-  const supplierId = await findOrCreateSupplier(supabase, event.supplier, buyerOrgId);
+  // Attribute buyer/supplier via the org_wallets registry. Unregistered wallets
+  // yield null attribution and a warning — no placeholder orgs are ever created.
+  const buyerOrgId = await lookupBuyerOrg(supabase, event.buyer);
+  if (!buyerOrgId) {
+    console.warn(
+      `[handlers] EscrowCreated ${escrowIdStr}: buyer wallet ${event.buyer.toLowerCase()} ` +
+        `is not registered in org_wallets — recording transaction with buyer_organization_id=null.`,
+    );
+  }
+
+  const supplierId = await lookupSupplier(supabase, event.supplier, buyerOrgId);
+  if (!supplierId) {
+    console.warn(
+      `[handlers] EscrowCreated ${escrowIdStr}: supplier wallet ${event.supplier.toLowerCase()} ` +
+        `did not resolve to a suppliers row for the buyer org — recording transaction with supplier_id=null.`,
+    );
+  }
 
   const { data: txRow, error: txErr } = await supabase
     .from('transactions')

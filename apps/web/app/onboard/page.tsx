@@ -98,7 +98,7 @@ export default async function OnboardPage({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Wallet address{' '}
+                    Your personal wallet{' '}
                     <span className="text-gray-400 font-normal">(optional)</span>
                   </label>
                   <input
@@ -107,6 +107,53 @@ export default async function OnboardPage({
                     placeholder="0x…"
                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="text-sm font-semibold text-gray-700 mb-1">Register a wallet</legend>
+              <p className="text-xs text-gray-500 mb-3">
+                Map an on-chain wallet to your organisation so Puente can attribute
+                escrow activity to you. You can add more later in Settings.
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Wallet address{' '}
+                    <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <input
+                    name="reg_wallet_address"
+                    type="text"
+                    placeholder="0x…"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select
+                      name="reg_wallet_role"
+                      defaultValue="buyer"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="buyer">Buyer</option>
+                      <option value="supplier">Supplier</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Label{' '}
+                      <span className="text-gray-400 font-normal">(optional)</span>
+                    </label>
+                    <input
+                      name="reg_wallet_label"
+                      type="text"
+                      placeholder="Operations wallet"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
               </div>
             </fieldset>
